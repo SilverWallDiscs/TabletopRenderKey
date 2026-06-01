@@ -3,23 +3,46 @@ from flask import Flask, request, jsonify
 import requests
 import traceback
 
-app = Flask(__name__)
-
-STEAM_KEY = os.environ.get("MI_API_KEY")
-
 @app.route("/avatar-steam", methods=["POST"])
 def avatar_steam():
     try:
-        print("=== NUEVA PETICION ===")
-        print("CONTENT TYPE:", request.content_type)
+        import urllib.parse
+        import json
 
         raw_data = request.get_data(as_text=True)
 
-        print("RAW DATA:")
-        print(repr(raw_data))
+        print("RAW:", raw_data)
+
+        decoded = urllib.parse.unquote(raw_data)
+
+        print("DECODED:", decoded)
+
+        data = json.loads(decoded)
+
+        steam_id = data["steam_id"]
+
+        url = (
+            "https://api.steampowered.com/"
+            "ISteamUser/GetPlayerSummaries/v2/"
+            f"?key={STEAM_KEY}&steamids={steam_id}"
+        )
+
+        steam_response = requests.get(url, timeout=15)
+
+        print("STEAM STATUS:", steam_response.status_code)
+        print("STEAM RESPONSE:", steam_response.text)
+
+        steam_data = steam_response.json()
+
+        players = steam_data.get("response", {}).get("players", [])
+
+        if not players:
+            return jsonify({
+                "error": "Jugador no encontrado"
+            }), 404
 
         return jsonify({
-            "debug": raw_data
+            "avatarUrl": players[0]["avatarfull"]
         })
 
     except Exception as e:

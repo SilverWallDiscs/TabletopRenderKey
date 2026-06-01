@@ -1,25 +1,55 @@
+```python
 import os
 from flask import Flask, request, jsonify
 import requests
 
 app = Flask(__name__)
 
-# Recuperamos la clave secreta guardada de forma segura en Render
-API_KEY = os.environ.get('MI_API_KEY')
+STEAM_KEY = os.environ.get("MI_API_KEY")
 
-@app.route('/procesar', methods=['POST'])
-def procesar():
-    datos_juego = request.json
-    
-    # 1. Aquí tu mini web usa la clave en secreto para hablar con el servicio real
-    # (Cambia esta URL por la del servicio que estés usando)
-    url_servicio = "https://ejemplo.com" 
-    headers = {"Authorization": f"Bearer {API_KEY}"}
-    
-    respuesta = requests.post(url_servicio, json=datos_juego, headers=headers)
-    
-    # 2. Le devolvemos a Tabletop Simulator el resultado SIN la clave
-    return jsonify(respuesta.json()), respuesta.status_code
+@app.route("/avatar-steam", methods=["POST"])
+def avatar_steam():
+    try:
+        data = request.get_json()
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+        steam_id = data.get("steam_id")
+        if not steam_id:
+            return jsonify({"error": "steam_id requerido"}), 400
+
+        url = (
+            "https://api.steampowered.com/"
+            "ISteamUser/GetPlayerSummaries/v2/"
+            f"?key={STEAM_KEY}&steamids={steam_id}"
+        )
+
+        steam_response = requests.get(url, timeout=15)
+        steam_data = steam_response.json()
+
+        players = steam_data.get("response", {}).get("players", [])
+
+        if not players:
+            return jsonify({"error": "Jugador no encontrado"}), 404
+
+        avatar_url = players[0]["avatarfull"]
+
+        return jsonify({
+            "avatarUrl": avatar_url
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Steam Avatar API Online"
+
+
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000))
+    )
+```

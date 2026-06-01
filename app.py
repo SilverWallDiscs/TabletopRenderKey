@@ -11,36 +11,15 @@ STEAM_KEY = os.environ.get("MI_API_KEY")
 def avatar_steam():
     try:
         print("=== NUEVA PETICION ===")
-        print("STEAM_KEY EXISTE:", STEAM_KEY is not None)
+        print("CONTENT TYPE:", request.content_type)
 
-        data = request.get_json(force=True)
-        print("DATA:", data)
+        raw_data = request.get_data(as_text=True)
 
-        steam_id = data["steam_id"]
-        print("STEAM_ID:", steam_id)
-
-        url = (
-            "https://api.steampowered.com/"
-            "ISteamUser/GetPlayerSummaries/v2/"
-            f"?key={STEAM_KEY}&steamids={steam_id}"
-        )
-
-        steam_response = requests.get(url, timeout=15)
-
-        print("STATUS:", steam_response.status_code)
-        print("RESPUESTA:", steam_response.text)
-
-        steam_data = steam_response.json()
-
-        players = steam_data.get("response", {}).get("players", [])
-
-        if not players:
-            return jsonify({
-                "error": "Jugador no encontrado"
-            }), 404
+        print("RAW DATA:")
+        print(repr(raw_data))
 
         return jsonify({
-            "avatarUrl": players[0]["avatarfull"]
+            "debug": raw_data
         })
 
     except Exception as e:

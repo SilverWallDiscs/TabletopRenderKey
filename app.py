@@ -13,10 +13,10 @@ def avatar_steam():
         print("=== NUEVA PETICION ===")
         print("STEAM_KEY EXISTE:", STEAM_KEY is not None)
 
-        data = request.get_json()
+        data = request.get_json(force=True)
         print("DATA:", data)
 
-        steam_id = data.get("steam_id")
+        steam_id = data["steam_id"]
         print("STEAM_ID:", steam_id)
 
         url = (
@@ -24,8 +24,6 @@ def avatar_steam():
             "ISteamUser/GetPlayerSummaries/v2/"
             f"?key={STEAM_KEY}&steamids={steam_id}"
         )
-
-        print("URL:", url)
 
         steam_response = requests.get(url, timeout=15)
 
@@ -37,7 +35,9 @@ def avatar_steam():
         players = steam_data.get("response", {}).get("players", [])
 
         if not players:
-            return jsonify({"error": "Jugador no encontrado"}), 404
+            return jsonify({
+                "error": "Jugador no encontrado"
+            }), 404
 
         return jsonify({
             "avatarUrl": players[0]["avatarfull"]

@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 import requests
 import traceback
 
-app = Flask(**name**)
+app = Flask(__name__)
 
 STEAM_KEY = os.environ.get("MI_API_KEY")
 

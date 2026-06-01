@@ -1,7 +1,14 @@
 import os
-from flask import Flask, request, jsonify
-import requests
+import json
+import urllib.parse
 import traceback
+import requests
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+STEAM_KEY = os.environ.get("MI_API_KEY")
 
 @app.route("/avatar-steam", methods=["POST"])
 def avatar_steam():
